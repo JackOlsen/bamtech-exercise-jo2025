@@ -1,7 +1,5 @@
 ﻿namespace StargateAPI.Business.Dtos;
 
-// TODO: This is being used both as a data model and an API DTO.
-// Split into separate classes.
 public class PersonAstronaut
 {
     public int PersonId { get; set; }
