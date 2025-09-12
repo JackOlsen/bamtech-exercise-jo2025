@@ -1,11 +1,10 @@
 ﻿using System.Net;
 
-namespace StargateAPI.Controllers
+namespace StargateAPI.Controllers;
+
+public class BaseResponse
 {
-    public class BaseResponse
-    {
-        public bool Success { get; set; } = true;
-        public string Message { get; set; } = "Successful";
-        public int ResponseCode { get; set; } = (int)HttpStatusCode.OK;
-    }
+    public readonly bool Success = true;
+    public readonly string Message = "Successful";
+    public readonly int ResponseCode = (int)HttpStatusCode.OK;
 }

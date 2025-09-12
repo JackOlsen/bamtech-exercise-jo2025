@@ -3,61 +3,60 @@ using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
+using System.Net;
 
-namespace StargateAPI.Business.Commands
+namespace StargateAPI.Business.Commands;
+
+public class CreatePerson(string name) : IRequest<CreatePersonResult>
 {
-    public class CreatePerson : IRequest<CreatePersonResult>
+    public readonly string Name = name;
+}
+
+public class CreatePersonPreProcessor(StargateContext context) 
+    : IRequestPreProcessor<CreatePerson>
+{
+    private readonly StargateContext _context = context;
+
+    public async Task Process(CreatePerson request, CancellationToken cancellationToken)
     {
-        public required string Name { get; set; } = string.Empty;
-    }
-
-    public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
-    {
-        private readonly StargateContext _context;
-        public CreatePersonPreProcessor(StargateContext context)
+        if (await _context.People.AsNoTracking()
+            .AnyAsync(
+                predicate: z => z.Name == request.Name,
+                cancellationToken: cancellationToken))
         {
-            _context = context;
-        }
-        public Task Process(CreatePerson request, CancellationToken cancellationToken)
-        {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
-
-            if (person is not null) throw new BadHttpRequestException("Bad Request");
-
-            return Task.CompletedTask;
-        }
-    }
-
-    public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
-    {
-        private readonly StargateContext _context;
-
-        public CreatePersonHandler(StargateContext context)
-        {
-            _context = context;
-        }
-        public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
-        {
-
-                var newPerson = new Person()
-                {
-                   Name = request.Name
-                };
-
-                await _context.People.AddAsync(newPerson);
-
-                await _context.SaveChangesAsync();
-
-                return new CreatePersonResult()
-                {
-                    Id = newPerson.Id
-                };
-          
+            throw new HttpRequestException(
+                message: "Duplicate astronaut name",
+                inner: null,
+                statusCode: HttpStatusCode.Conflict);
         }
     }
+}
 
-    public class CreatePersonResult : BaseResponse
+public class CreatePersonHandler(StargateContext context) 
+    : IRequestHandler<CreatePerson, CreatePersonResult>
+{
+    private readonly StargateContext _context = context;
+
+    public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
-        public int Id { get; set; }
+        var newPerson = new Person
+        {
+            Name = request.Name
+        };
+
+        await _context.People.AddAsync(
+            entity: newPerson,
+            cancellationToken: cancellationToken);
+
+        await _context.SaveChangesAsync(
+            cancellationToken: cancellationToken);
+
+        return new CreatePersonResult(
+            id: newPerson.Id);
     }
+}
+
+public class CreatePersonResult(int id) : BaseResponse
+{
+    public readonly int Id = id;
 }
