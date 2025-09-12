@@ -25,52 +25,50 @@ public class WritePersonHandler(StargateContext context)
 
     public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync(
+        var person = await _context.DoWithinTransaction(
+            action: async ctx =>
+            {
+                await AssertIsNotDuplicateName(
+                    name: request.Name,
+                    cancellationToken: cancellationToken);
+
+                var newPerson = new Person(
+                    name: request.Name);
+
+                await _context.People.AddAsync(
+                    entity: newPerson,
+                    cancellationToken: cancellationToken);
+
+                return newPerson;
+            },
             cancellationToken: cancellationToken);
-
-        await AssertIsNotDuplicateName(
-            name: request.Name,
-            cancellationToken: cancellationToken);
-
-        var newPerson = new Person(
-            name: request.Name);
-
-        await _context.People.AddAsync(
-            entity: newPerson,
-            cancellationToken: cancellationToken);
-
-        await _context.SaveChangesAsync(
-            cancellationToken: cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken: cancellationToken);
 
         return new CreatePersonResult(
-            id: newPerson.Id);
+            id: person.Id);
     }
 
     public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync(
+        var person = await _context.DoWithinTransaction(
+            action: async ctx =>
+            {
+                await AssertIsNotDuplicateName(
+                    name: request.NewName,
+                    cancellationToken: cancellationToken);
+
+                var existingPerson = await _context.People
+                    .Where(p => p.Name == request.CurrentName)
+                    .FirstOrDefaultAsync(cancellationToken: cancellationToken)
+                    ?? throw new HttpRequestException(
+                        message: $"No person found with name '{request.CurrentName}'.",
+                        inner: null,
+                        statusCode: HttpStatusCode.NotFound);
+
+                existingPerson.Name = request.NewName;
+
+                return existingPerson;
+            },
             cancellationToken: cancellationToken);
-
-        await AssertIsNotDuplicateName(
-            name: request.NewName,
-            cancellationToken: cancellationToken);
-
-        var person = await _context.People
-            .Where(p => p.Name == request.CurrentName)
-            .FirstOrDefaultAsync(cancellationToken: cancellationToken)
-            ?? throw new HttpRequestException(
-                message: $"No person found with name '{request.CurrentName}'.",
-                inner: null,
-                statusCode: HttpStatusCode.NotFound);
-
-        person.Name = request.NewName;
-
-        await _context.SaveChangesAsync(
-            cancellationToken: cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken: cancellationToken);
 
         return new UpdatePersonResult(
             id: person.Id);
