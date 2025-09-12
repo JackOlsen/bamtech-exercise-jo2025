@@ -25,43 +25,36 @@ public class StargateContext(DbContextOptions<StargateContext> options)
 
     private static void SeedData(ModelBuilder modelBuilder)
     {
+        #pragma warning disable 0618 
         //add seed data
         modelBuilder.Entity<Person>()
             .HasData(
-                new Person
-                {
-                    Id = 1,
-                    Name = "John Doe"
-                },
-                new Person
-                {
-                    Id = 2,
-                    Name = "Jane Doe"
-                }
-            );
+                new Person(
+                    id: 1,
+                    name: "John Doe"),
+                new Person(
+                    id: 2,
+                    name: "Jane Doe"));
 
         modelBuilder.Entity<AstronautDetail>()
             .HasData(
-                new AstronautDetail
-                {
-                    Id = 1,
-                    PersonId = 1,
-                    CurrentRank = "1LT",
-                    CurrentDutyTitle = "Commander",
-                    CareerStartDate = DateTime.Now
-                }
-            );
+                new AstronautDetail(
+                    id: 1,
+                    personId: 1,
+                    currentRank: "1LT",
+                    currentDutyTitle: "Commander",
+                    careerStartDate: DateTime.Now,
+                    careerEndDate: null));
 
         modelBuilder.Entity<AstronautDuty>()
             .HasData(
-                new AstronautDuty
-                {
-                    Id = 1,
-                    PersonId = 1,
-                    DutyStartDate = DateTime.Now,
-                    DutyTitle = "Commander",
-                    Rank = "1LT"
-                }
-            );
+                new AstronautDuty(
+                    id: 1,
+                    personId: 1,
+                    dutyStartDate: DateTime.Now,
+                    dutyTitle: "Commander",
+                    rank: "1LT",
+                    dutyEndDate: null));
+        #pragma warning restore 0618
     }
 }

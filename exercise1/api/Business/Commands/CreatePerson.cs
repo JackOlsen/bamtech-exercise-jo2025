@@ -32,10 +32,8 @@ public class CreatePersonHandler(StargateContext context)
                 statusCode: HttpStatusCode.Conflict);
         }
 
-        var newPerson = new Person
-        {
-            Name = request.Name
-        };
+        var newPerson = new Person(
+            name: request.Name);
 
         await _context.People.AddAsync(
             entity: newPerson,

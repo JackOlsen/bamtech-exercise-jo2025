@@ -58,19 +58,15 @@ public class CreateAstronautDutyHandler(StargateContext context)
 
         if (astronautDetail == null)
         {
-            astronautDetail = new AstronautDetail
-            {
-                PersonId = person.Id,
-                CurrentDutyTitle = request.DutyTitle,
-                CurrentRank = request.Rank,
-                CareerStartDate = request.DutyStartDate.Date
-            };
-            if (request.DutyTitle == Constants.DutyTitles.RETIRED)
-            {
-                astronautDetail.CareerEndDate = request.DutyStartDate.Date;
-            }
             await _context.AstronautDetails.AddAsync(
-                entity: astronautDetail,
+                entity: new AstronautDetail(
+                    personId: person.Id,
+                    currentDutyTitle: request.DutyTitle,
+                    currentRank: request.Rank,
+                    careerStartDate: request.DutyStartDate.Date,
+                    careerEndDate: request.DutyTitle == Constants.DutyTitles.RETIRED
+                        ? request.DutyStartDate.Date
+                        : null),
                 cancellationToken: cancellationToken);
         }
         else
@@ -95,14 +91,12 @@ public class CreateAstronautDutyHandler(StargateContext context)
             _context.AstronautDuties.Update(astronautDuty);
         }
 
-        var newAstronautDuty = new AstronautDuty
-        {
-            PersonId = person.Id,
-            Rank = request.Rank,
-            DutyTitle = request.DutyTitle,
-            DutyStartDate = request.DutyStartDate.Date,
-            DutyEndDate = null
-        };
+        var newAstronautDuty = new AstronautDuty(
+            personId: person.Id,
+            rank: request.Rank,
+            dutyTitle: request.DutyTitle,
+            dutyStartDate: request.DutyStartDate.Date,
+            dutyEndDate: null);
 
         await _context.AstronautDuties.AddAsync(newAstronautDuty, cancellationToken);
 
