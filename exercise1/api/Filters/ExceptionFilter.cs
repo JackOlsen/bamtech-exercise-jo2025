@@ -5,18 +5,13 @@ using System.Net;
 
 namespace StargateAPI.Filters;
 
-public class ExceptionFilter(ProblemDetailsFactory problemDetailsFactory) 
+public class ExceptionFilter(
+    ProblemDetailsFactory problemDetailsFactory,
+    ILogger<ExceptionFilter> logger) 
     : IExceptionFilter
 {
-    // TODO: Setup logging and add here
-    //private readonly ILogger<ExceptionFilter> _logger;
-
-    //public ExceptionFilter(ILogger<ExceptionFilter> logger)
-    //{
-    //    _logger = logger;
-    //}
-
     private readonly ProblemDetailsFactory _problemDetailsFactory = problemDetailsFactory;
+    private readonly ILogger<ExceptionFilter> _logger = logger;
 
     public void OnException(ExceptionContext context)
     {
@@ -29,8 +24,7 @@ public class ExceptionFilter(ProblemDetailsFactory problemDetailsFactory)
 
         if (httpStatusCode == StatusCodes.Status500InternalServerError)
         {
-            // TODO
-            //_logger.LogError(context.Exception, "An unhandled exception occurred.");
+            _logger.LogError(context.Exception, "An unhandled exception occurred.");
         }
 
         context.Result = new ObjectResult(

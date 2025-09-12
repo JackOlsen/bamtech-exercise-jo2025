@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace StargateAPI.Business.Services;
