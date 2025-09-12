@@ -12,6 +12,7 @@ public class PersonController(IMediator mediator) : ControllerBase
     private readonly IMediator _mediator = mediator;
 
     [HttpGet]
+    // TODO: Add ProducesResponseTypeAttributes to all actions
     public async Task<IActionResult> GetPeople() =>
         this.GetResponse(
             response: await _mediator.Send(new GetPeople()));

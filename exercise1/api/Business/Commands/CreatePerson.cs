@@ -43,8 +43,10 @@ public class WritePersonHandler(StargateContext context)
             },
             cancellationToken: cancellationToken);
 
-        return new CreatePersonResult(
-            id: person.Id);
+        return new CreatePersonResult
+        {
+            Id = person.Id
+        };
     }
 
     public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
@@ -70,8 +72,10 @@ public class WritePersonHandler(StargateContext context)
             },
             cancellationToken: cancellationToken);
 
-        return new UpdatePersonResult(
-            id: person.Id);
+        return new UpdatePersonResult
+        {
+            Id = person.Id
+        };
     }
 
     private async Task AssertIsNotDuplicateName(string name, CancellationToken cancellationToken)
@@ -89,12 +93,12 @@ public class WritePersonHandler(StargateContext context)
     }
 }
 
-public class CreatePersonResult(int id) : BaseResponse
+public class CreatePersonResult : BaseResponse
 {
-    public readonly int Id = id;
+    public int Id { get; set; }
 }
 
-public class UpdatePersonResult(int id) : BaseResponse
+public class UpdatePersonResult : BaseResponse
 {
-    public readonly int Id = id;
+    public int Id { get; set; }
 }
