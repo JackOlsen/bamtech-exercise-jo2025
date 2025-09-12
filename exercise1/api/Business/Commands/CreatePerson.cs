@@ -19,6 +19,8 @@ public class CreatePersonPreProcessor(StargateContext context)
 
     public async Task Process(CreatePerson request, CancellationToken cancellationToken)
     {
+        // TODO: This validation should really happen within the same transaction where we
+        // then attempt to create the new record, otherwise we're subject to a race condition.
         if (await _context.People.AsNoTracking()
             .AnyAsync(
                 predicate: z => z.Name == request.Name,

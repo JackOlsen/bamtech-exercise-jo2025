@@ -1,5 +1,4 @@
-﻿using Dapper;
-using MediatR;
+﻿using MediatR;
 using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
@@ -26,6 +25,8 @@ public class CreateAstronautDutyPreProcessor(StargateContext context)
 
     public async Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
     {
+        // TODO: This validation should really happen within the same transaction where we
+        // then attempt to create the new record, otherwise we're subject to a race condition.
         if(await _context.AstronautDuties
             .AnyAsync(
                 predicate: z => z.Person.Name == request.Name
@@ -50,17 +51,19 @@ public class CreateAstronautDutyHandler(StargateContext context)
         CreateAstronautDuty request,
         CancellationToken cancellationToken)
     {
-        // TODO: Use DbContext
-        var person = await _context.Connection.QueryFirstOrDefaultAsync<Person>(
-            sql: $"SELECT * FROM [Person] WHERE \'{request.Name}\' = Name")
+        var person = await _context.People
+            .FirstOrDefaultAsync(
+                predicate: p => p.Name == request.Name,
+                cancellationToken: cancellationToken)
             ?? throw new HttpRequestException(
                 message: $"No person found with name '{request.Name}'.",
                 inner: null,
                 statusCode: HttpStatusCode.NotFound);
 
-        // TODO: Use DbContext
-        var astronautDetail = await _context.Connection.QueryFirstOrDefaultAsync<AstronautDetail>(
-            sql: $"SELECT * FROM [AstronautDetail] WHERE {person.Id} = PersonId");
+        var astronautDetail = await _context.AstronautDetails
+            .FirstOrDefaultAsync(
+                predicate: d => d.PersonId == person.Id,
+                cancellationToken: cancellationToken);
 
         if (astronautDetail == null)
         {
@@ -90,9 +93,10 @@ public class CreateAstronautDutyHandler(StargateContext context)
             _context.AstronautDetails.Update(astronautDetail);
         }
 
-        // TODO: Use DbContext
-        var astronautDuty = await _context.Connection.QueryFirstOrDefaultAsync<AstronautDuty>(
-            sql: $"SELECT * FROM [AstronautDuty] WHERE {person.Id} = PersonId ORDER BY DutyStartDate DESC");
+        var astronautDuty = await _context.AstronautDuties
+            .Where(d => d.PersonId == person.Id)
+            .OrderByDescending(d => d.DutyStartDate)
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
         if (astronautDuty != null)
         {
