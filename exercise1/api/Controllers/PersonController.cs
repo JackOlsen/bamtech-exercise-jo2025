@@ -22,7 +22,12 @@ public class PersonController(IMediator mediator) : ControllerBase
             response: await _mediator.Send(new GetPersonByName(name: name)));
 
     [HttpPost]
-    public async Task<IActionResult> CreatePerson([FromBody] string name) =>
+    public async Task<IActionResult> CreatePerson([FromBody] CreatePerson request) =>
         this.GetResponse(
-            response: await _mediator.Send(new CreatePerson(name: name)));
+            response: await _mediator.Send(request));
+
+    [HttpPut]
+    public async Task<IActionResult> UpdatePerson([FromBody] UpdatePerson request) =>
+        this.GetResponse(
+            response: await _mediator.Send(request));
 }
