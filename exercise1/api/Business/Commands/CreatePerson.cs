@@ -7,9 +7,9 @@ using System.Net;
 
 namespace StargateAPI.Business.Commands;
 
-public class CreatePerson : IRequest<CreatePersonResult>
+public class CreatePerson(string name) : IRequest<CreatePersonResult>
 {
-    public required string Name { get; set; } = string.Empty;
+    public readonly string Name = name;
 }
 
 public class CreatePersonPreProcessor(StargateContext context) 
