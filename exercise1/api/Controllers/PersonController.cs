@@ -45,10 +45,7 @@ namespace StargateAPI.Controllers
         {
             try
             {
-                var result = await _mediator.Send(new GetPersonByName()
-                {
-                    Name = name
-                });
+                var result = await _mediator.Send(new GetPersonByName(name: name));
 
                 return this.GetResponse(result);
             }

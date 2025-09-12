@@ -6,9 +6,9 @@ using StargateAPI.Controllers;
 
 namespace StargateAPI.Business.Queries;
 
-public class GetPersonByName : IRequest<GetPersonByNameResult>
+public class GetPersonByName(string name) : IRequest<GetPersonByNameResult>
 {
-    public required string Name { get; set; } = string.Empty;
+    public readonly string Name = name;
 }
 
 public class GetPersonByNameHandler(StargateContext context) 
