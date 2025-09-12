@@ -8,6 +8,7 @@ using System.Net;
 
 namespace StargateAPI.Business.Queries;
 
+// TODO: This request is currently unused. Delete?
 public class GetAstronautDutiesByName : IRequest<GetAstronautDutiesByNameResult>
 {
     public string Name { get; set; } = string.Empty;
