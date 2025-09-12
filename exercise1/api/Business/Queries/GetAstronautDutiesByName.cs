@@ -35,17 +35,17 @@ public class GetAstronautDutiesByNameHandler(StargateContext context, PersonAstr
             .OrderByDescending(d => d.DutyStartDate)
             .ToListAsync(cancellationToken: cancellationToken);
 
-        return new GetAstronautDutiesByNameResult(
-            person: person,
-            astronautDuties: duties);
+        return new GetAstronautDutiesByNameResult
+        {
+            Person = person,
+            AstronautDuties = duties
+        };
     }
 }
 
-public class GetAstronautDutiesByNameResult(
-    PersonAstronaut person, 
-    List<AstronautDuty> astronautDuties) 
+public class GetAstronautDutiesByNameResult
     : BaseResponse
 {
-    public readonly PersonAstronaut Person = person;
-    public readonly List<AstronautDuty> AstronautDuties = astronautDuties;
+    public PersonAstronaut Person { get; set; }
+    public List<AstronautDuty> AstronautDuties { get; set; }
 }

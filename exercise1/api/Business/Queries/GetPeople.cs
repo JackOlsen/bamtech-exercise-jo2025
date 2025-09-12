@@ -13,12 +13,14 @@ public class GetPeopleHandler(PersonAstronautService personAstronautService)
     public readonly PersonAstronautService _personAstronautService = personAstronautService;
 
     public async Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken) =>
-        new GetPeopleResult(
-            people: await _personAstronautService.GetPersonAstronautsAsNoTrackingAsync(
-                cancellationToken: cancellationToken));
+        new GetPeopleResult
+        {
+            People = await _personAstronautService.GetPersonAstronautsAsNoTrackingAsync(
+                cancellationToken: cancellationToken)
+        };
 }
 
-public class GetPeopleResult(List<PersonAstronaut> people) : BaseResponse
+public class GetPeopleResult : BaseResponse
 {
-    public readonly List<PersonAstronaut> People = people;
+    public List<PersonAstronaut> People { get; set; } = null!;
 }

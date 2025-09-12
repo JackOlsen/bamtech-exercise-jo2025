@@ -17,6 +17,7 @@ public class PersonAstronautService(StargateContext context)
 
     public Task<List<PersonAstronaut>> GetPersonAstronautsAsNoTrackingAsync(CancellationToken cancellationToken) =>
         _context.People.AsNoTracking()
+            .OrderBy(p => p.Id)
             .Select(GetPersonAstronaut)
             .ToListAsync(cancellationToken: cancellationToken);
 

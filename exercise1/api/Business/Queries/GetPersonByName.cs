@@ -21,12 +21,14 @@ public class GetPersonByNameHandler(PersonAstronautService personAstronautServic
             name: request.Name,
             cancellationToken: cancellationToken);
 
-        return new GetPersonByNameResult(
-            person: person);
+        return new GetPersonByNameResult
+        {
+            Person = person
+        };
     }
 }
 
-public class GetPersonByNameResult(PersonAstronaut? person) : BaseResponse
+public class GetPersonByNameResult : BaseResponse
 {
-    public readonly PersonAstronaut? Person = person;
+    public PersonAstronaut? Person { get; set; }
 }

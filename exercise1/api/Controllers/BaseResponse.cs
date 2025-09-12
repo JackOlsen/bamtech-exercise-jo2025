@@ -4,8 +4,8 @@ namespace StargateAPI.Controllers;
 
 public class BaseResponse
 {
-    public readonly bool Success = true;
-    public readonly string Message = "Successful";
+    public bool Success { get; set; } = true;
+    public string Message { get; set; } = "Successful";
     // TODO: Do we need ResponseCode property in addition to status code on the response?
-    public readonly int ResponseCode = (int)HttpStatusCode.OK;
+    public int ResponseCode { get; set; } = (int)HttpStatusCode.OK;
 }
