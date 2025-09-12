@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
@@ -16,30 +15,6 @@ public class CreateAstronautDuty : IRequest<CreateAstronautDutyResult>
     public required string DutyTitle { get; set; }
 
     public DateTime DutyStartDate { get; set; }
-}
-
-public class CreateAstronautDutyPreProcessor(StargateContext context) 
-    : IRequestPreProcessor<CreateAstronautDuty>
-{
-    private readonly StargateContext _context = context;
-
-    public async Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
-    {
-        // TODO: This validation should really happen within the same transaction where we
-        // then attempt to create the new record, otherwise we're subject to a race condition.
-        if(await _context.AstronautDuties
-            .AnyAsync(
-                predicate: z => z.Person.Name == request.Name
-                    && z.DutyTitle == request.DutyTitle 
-                    && z.DutyStartDate == request.DutyStartDate,
-                cancellationToken: cancellationToken))
-        {
-            throw new HttpRequestException(
-                message: "Duplicate astronaut duty", 
-                inner: null, 
-                statusCode: HttpStatusCode.Conflict);
-        }
-    }
 }
 
 public class CreateAstronautDutyHandler(StargateContext context) 
@@ -59,6 +34,22 @@ public class CreateAstronautDutyHandler(StargateContext context)
                 message: $"No person found with name '{request.Name}'.",
                 inner: null,
                 statusCode: HttpStatusCode.NotFound);
+
+        await using var transaction = await _context.Database.BeginTransactionAsync(
+            cancellationToken: cancellationToken);
+
+        if (await _context.AstronautDuties
+            .AnyAsync(
+                predicate: z => z.Person.Name == request.Name
+                    && z.DutyTitle == request.DutyTitle
+                    && z.DutyStartDate == request.DutyStartDate,
+                cancellationToken: cancellationToken))
+        {
+            throw new HttpRequestException(
+                message: "Duplicate astronaut duty",
+                inner: null,
+                statusCode: HttpStatusCode.Conflict);
+        }
 
         var astronautDetail = await _context.AstronautDetails
             .FirstOrDefaultAsync(
@@ -116,6 +107,8 @@ public class CreateAstronautDutyHandler(StargateContext context)
         await _context.AstronautDuties.AddAsync(newAstronautDuty, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken: cancellationToken);
 
         return new CreateAstronautDutyResult(
             id: newAstronautDuty.Id);

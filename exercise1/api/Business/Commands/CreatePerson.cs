@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
@@ -12,15 +11,16 @@ public class CreatePerson(string name) : IRequest<CreatePersonResult>
     public readonly string Name = name;
 }
 
-public class CreatePersonPreProcessor(StargateContext context) 
-    : IRequestPreProcessor<CreatePerson>
+public class CreatePersonHandler(StargateContext context) 
+    : IRequestHandler<CreatePerson, CreatePersonResult>
 {
     private readonly StargateContext _context = context;
 
-    public async Task Process(CreatePerson request, CancellationToken cancellationToken)
+    public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
-        // TODO: This validation should really happen within the same transaction where we
-        // then attempt to create the new record, otherwise we're subject to a race condition.
+        await using var transaction = await _context.Database.BeginTransactionAsync(
+            cancellationToken: cancellationToken);
+
         if (await _context.People.AsNoTracking()
             .AnyAsync(
                 predicate: z => z.Name == request.Name,
@@ -31,16 +31,7 @@ public class CreatePersonPreProcessor(StargateContext context)
                 inner: null,
                 statusCode: HttpStatusCode.Conflict);
         }
-    }
-}
 
-public class CreatePersonHandler(StargateContext context) 
-    : IRequestHandler<CreatePerson, CreatePersonResult>
-{
-    private readonly StargateContext _context = context;
-
-    public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
-    {
         var newPerson = new Person
         {
             Name = request.Name
@@ -52,6 +43,8 @@ public class CreatePersonHandler(StargateContext context)
 
         await _context.SaveChangesAsync(
             cancellationToken: cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken: cancellationToken);
 
         return new CreatePersonResult(
             id: newPerson.Id);
