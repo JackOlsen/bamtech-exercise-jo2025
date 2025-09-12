@@ -17,7 +17,7 @@ public class GetPersonByNameHandler(PersonAstronautService personAstronautServic
 
     public async Task<GetPersonByNameResult> Handle(GetPersonByName request, CancellationToken cancellationToken)
     {
-        var person = await _personAstronautService.GetPersonAstronautAsync(
+        var person = await _personAstronautService.GetPersonAstronautAsNoTrackingAsync(
             name: request.Name,
             cancellationToken: cancellationToken);
 

@@ -14,7 +14,7 @@ public class GetPeopleHandler(PersonAstronautService personAstronautService)
 
     public async Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken) =>
         new GetPeopleResult(
-            people: await _personAstronautService.GetPersonAstronautsAsync(
+            people: await _personAstronautService.GetPersonAstronautsAsNoTrackingAsync(
                 cancellationToken: cancellationToken));
 }
 

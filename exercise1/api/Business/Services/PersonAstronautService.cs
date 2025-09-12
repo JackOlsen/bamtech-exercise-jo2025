@@ -9,15 +9,15 @@ public class PersonAstronautService(StargateContext context)
 {
     private readonly StargateContext _context = context;
 
-    public Task<PersonAstronaut?> GetPersonAstronautAsync(string name, CancellationToken cancellationToken) =>
-        _context.People
+    public Task<PersonAstronaut?> GetPersonAstronautAsNoTrackingAsync(string name, CancellationToken cancellationToken) =>
+        _context.People.AsNoTracking()
             .Select(GetPersonAstronaut)
             .FirstOrDefaultAsync(
                 predicate: p => p.Name == name,
                 cancellationToken: cancellationToken);
 
-    public Task<List<PersonAstronaut>> GetPersonAstronautsAsync(CancellationToken cancellationToken) =>
-        _context.People
+    public Task<List<PersonAstronaut>> GetPersonAstronautsAsNoTrackingAsync(CancellationToken cancellationToken) =>
+        _context.People.AsNoTracking()
             .Select(GetPersonAstronaut)
             .ToListAsync(cancellationToken: cancellationToken);
 

@@ -21,7 +21,7 @@ public class GetAstronautDutiesByNameHandler(StargateContext context, PersonAstr
 
     public async Task<GetAstronautDutiesByNameResult> Handle(GetAstronautDutiesByName request, CancellationToken cancellationToken)
     {
-        var person = await _personAstronautService.GetPersonAstronautAsync(
+        var person = await _personAstronautService.GetPersonAstronautAsNoTrackingAsync(
             name: request.Name,
             cancellationToken: cancellationToken)
             ?? throw new HttpRequestException(
