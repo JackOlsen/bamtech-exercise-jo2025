@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace StargateAPI.Business.Services;
@@ -11,10 +12,9 @@ public class PersonAstronautService(StargateContext context)
 
     public Task<PersonAstronaut?> GetPersonAstronautAsNoTrackingAsync(string name, CancellationToken cancellationToken) =>
         _context.People.AsNoTracking()
+            .Where(p => p.Name == name)
             .Select(GetPersonAstronaut)
-            .FirstOrDefaultAsync(
-                predicate: p => p.Name == name,
-                cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
     public Task<List<PersonAstronaut>> GetPersonAstronautsAsNoTrackingAsync(CancellationToken cancellationToken) =>
         _context.People.AsNoTracking()
