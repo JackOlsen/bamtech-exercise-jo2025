@@ -3,6 +3,7 @@ using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
+using System.Net;
 
 namespace StargateAPI.Business.Commands
 {
@@ -11,53 +12,52 @@ namespace StargateAPI.Business.Commands
         public required string Name { get; set; } = string.Empty;
     }
 
-    public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
+    public class CreatePersonPreProcessor(StargateContext context) 
+        : IRequestPreProcessor<CreatePerson>
     {
-        private readonly StargateContext _context;
-        public CreatePersonPreProcessor(StargateContext context)
-        {
-            _context = context;
-        }
-        public Task Process(CreatePerson request, CancellationToken cancellationToken)
-        {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
+        private readonly StargateContext _context = context;
 
-            if (person is not null) throw new BadHttpRequestException("Bad Request");
-
-            return Task.CompletedTask;
+        public async Task Process(CreatePerson request, CancellationToken cancellationToken)
+        {
+            if (await _context.People.AsNoTracking()
+                .AnyAsync(
+                    predicate: z => z.Name == request.Name,
+                    cancellationToken: cancellationToken))
+            {
+                throw new HttpRequestException(
+                    message: "Duplicate astronaut name",
+                    inner: null,
+                    statusCode: HttpStatusCode.Conflict);
+            }
         }
     }
 
-    public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
+    public class CreatePersonHandler(StargateContext context) 
+        : IRequestHandler<CreatePerson, CreatePersonResult>
     {
-        private readonly StargateContext _context;
+        private readonly StargateContext _context = context;
 
-        public CreatePersonHandler(StargateContext context)
-        {
-            _context = context;
-        }
         public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
         {
+            var newPerson = new Person
+            {
+                Name = request.Name
+            };
 
-                var newPerson = new Person()
-                {
-                   Name = request.Name
-                };
+            await _context.People.AddAsync(
+                entity: newPerson,
+                cancellationToken: cancellationToken);
 
-                await _context.People.AddAsync(newPerson);
+            await _context.SaveChangesAsync(
+                cancellationToken: cancellationToken);
 
-                await _context.SaveChangesAsync();
-
-                return new CreatePersonResult()
-                {
-                    Id = newPerson.Id
-                };
-          
+            return new CreatePersonResult(
+                id: newPerson.Id);
         }
     }
 
-    public class CreatePersonResult : BaseResponse
+    public class CreatePersonResult(int id) : BaseResponse
     {
-        public int Id { get; set; }
+        public readonly int Id = id;
     }
 }
