@@ -20,6 +20,40 @@ public class AstronautDetail
     public DateTime? CareerEndDate { get; set; }
 
     public virtual Person Person { get; set; } = null!;
+
+    [Obsolete("For EF use only", error: true)]
+    protected AstronautDetail() { }
+
+    public AstronautDetail(
+        int personId,
+        string currentRank,
+        string currentDutyTitle,
+        DateTime careerStartDate,
+        DateTime? careerEndDate)
+    {
+        PersonId = personId;
+        CurrentRank = currentRank;
+        CurrentDutyTitle = currentDutyTitle;
+        CareerStartDate = careerStartDate;
+        CareerEndDate = careerEndDate;
+    }
+
+    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
+    public AstronautDetail(
+        int id,
+        int personId,
+        string currentRank,
+        string currentDutyTitle,
+        DateTime careerStartDate,
+        DateTime? careerEndDate)
+    {
+        Id = id;
+        PersonId = personId;
+        CurrentRank = currentRank;
+        CurrentDutyTitle = currentDutyTitle;
+        CareerStartDate = careerStartDate;
+        CareerEndDate = careerEndDate;
+    }
 }
 
 public class AstronautDetailConfiguration : IEntityTypeConfiguration<AstronautDetail>

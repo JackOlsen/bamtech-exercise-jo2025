@@ -14,6 +14,21 @@ public class Person
     public virtual AstronautDetail? AstronautDetail { get; set; }
 
     public virtual ICollection<AstronautDuty> AstronautDuties { get; set; } = new HashSet<AstronautDuty>();
+
+    [Obsolete("For EF use only", error: true)]
+    protected Person() { }
+
+    public Person(string name)
+    {
+        Name = name;
+    }
+
+    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
+    public Person(int id, string name)
+    {
+        Id = id;
+        Name = name;
+    }
 }
 
 public class PersonConfiguration : IEntityTypeConfiguration<Person>
