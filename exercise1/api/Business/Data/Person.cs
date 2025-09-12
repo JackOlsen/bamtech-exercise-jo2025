@@ -14,7 +14,6 @@ namespace StargateAPI.Business.Data
         public virtual AstronautDetail? AstronautDetail { get; set; }
 
         public virtual ICollection<AstronautDuty> AstronautDuties { get; set; } = new HashSet<AstronautDuty>();
-
     }
 
     public class PersonConfiguration : IEntityTypeConfiguration<Person>
