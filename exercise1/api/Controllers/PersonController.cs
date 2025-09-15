@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using StargateAPI.Business.Commands;
 using StargateAPI.Business.Queries;
+using System.Net;
 
 namespace StargateAPI.Controllers;
 
@@ -12,22 +13,31 @@ public class PersonController(IMediator mediator) : ControllerBase
     private readonly IMediator _mediator = mediator;
 
     [HttpGet]
-    public async Task<IActionResult> GetPeople() =>
-        this.GetResponse(
-            response: await _mediator.Send(new GetPeople()));
+    [ProducesResponseType<GetPeopleResult>(statusCode: (int)HttpStatusCode.OK)]
+    public Task<GetPeopleResult> GetPeople() =>
+        _mediator.Send(new GetPeople());
 
     [HttpGet("{name}")]
-    public async Task<IActionResult> GetPersonByName(string name) =>
-        this.GetResponse(
-            response: await _mediator.Send(new GetPersonByName(name: name)));
+    [ProducesResponseType<GetPersonByNameResult>(statusCode: (int)HttpStatusCode.OK)]
+    [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.NotFound)]
+    public Task<GetPersonByNameResult> GetPersonByName(string name) =>
+        _mediator.Send(new GetPersonByName(name: name));
 
     [HttpPost]
-    public async Task<IActionResult> CreatePerson([FromBody] CreatePerson request) =>
-        this.GetResponse(
-            response: await _mediator.Send(request));
+    [ProducesResponseType<CreatePersonResult>(statusCode: (int)HttpStatusCode.Created)]
+    [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.Conflict)]
+    public async Task<CreatedResult> CreatePerson([FromBody] CreatePerson request) 
+    {
+        var createPersonResult = await _mediator.Send(request);
+        return Created(
+            uri: $"/person/{request.Name}",
+            value: createPersonResult);
+    }
 
     [HttpPut]
-    public async Task<IActionResult> UpdatePerson([FromBody] UpdatePerson request) =>
-        this.GetResponse(
-            response: await _mediator.Send(request));
+    [ProducesResponseType<UpdatePersonResult>(statusCode: (int)HttpStatusCode.OK)]
+    [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.Conflict)]
+    public Task<UpdatePersonResult> UpdatePerson([FromBody] UpdatePerson request) =>
+        _mediator.Send(request);
 }

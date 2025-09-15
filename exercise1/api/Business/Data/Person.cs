@@ -23,12 +23,17 @@ public class Person
         Name = name;
     }
 
-    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
-    public Person(int id, string name)
+    private Person(int id, string name)
     {
         Id = id;
         Name = name;
     }
+
+    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
+    public static Person Seed(int id, string name) => 
+        new(
+            id: id, 
+            name: name);
 }
 
 public class PersonConfiguration : IEntityTypeConfiguration<Person>

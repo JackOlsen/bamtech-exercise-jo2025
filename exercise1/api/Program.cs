@@ -11,10 +11,6 @@ builder.Services
     .AddControllers(options =>
     {
         options.Filters.Add<ExceptionFilter>();
-    })
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.IncludeFields = true;
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -44,3 +40,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
