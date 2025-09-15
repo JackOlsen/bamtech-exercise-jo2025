@@ -3,15 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Business.Services;
-using StargateAPI.Controllers;
 using System.Net;
 
 namespace StargateAPI.Business.Queries;
 
-// TODO: This request is currently unused. Delete?
-public class GetAstronautDutiesByName : IRequest<GetAstronautDutiesByNameResult>
+public class GetAstronautDutiesByName(string name) : IRequest<GetAstronautDutiesByNameResult>
 {
-    public string Name { get; set; } = string.Empty;
+    public readonly string Name = name;
 }
 
 public class GetAstronautDutiesByNameHandler(StargateContext context, PersonAstronautService personAstronautService) 
@@ -26,7 +24,7 @@ public class GetAstronautDutiesByNameHandler(StargateContext context, PersonAstr
             name: request.Name,
             cancellationToken: cancellationToken)
             ?? throw new HttpRequestException(
-                message: $"No person found with name '{request.Name}'.", 
+                message: $"No astronaut found with name '{request.Name}'.",
                 inner: null,
                 statusCode: HttpStatusCode.NotFound);
 
@@ -44,8 +42,7 @@ public class GetAstronautDutiesByNameHandler(StargateContext context, PersonAstr
 }
 
 public class GetAstronautDutiesByNameResult
-    : BaseResponse
 {
-    public PersonAstronaut Person { get; set; }
-    public List<AstronautDuty> AstronautDuties { get; set; }
+    public PersonAstronaut Person { get; init; } = null!;
+    public List<AstronautDuty> AstronautDuties { get; init; } = null!;
 }

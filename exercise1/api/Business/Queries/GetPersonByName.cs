@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Business.Services;
-using StargateAPI.Controllers;
+using System.Net;
 
 namespace StargateAPI.Business.Queries;
 
@@ -19,7 +19,11 @@ public class GetPersonByNameHandler(PersonAstronautService personAstronautServic
     {
         var person = await _personAstronautService.GetPersonAstronautAsNoTrackingAsync(
             name: request.Name,
-            cancellationToken: cancellationToken);
+            cancellationToken: cancellationToken)
+            ?? throw new HttpRequestException(
+                message: $"No person found with name '{request.Name}'.",
+                inner: null,
+                statusCode: HttpStatusCode.NotFound);
 
         return new GetPersonByNameResult
         {
@@ -28,7 +32,7 @@ public class GetPersonByNameHandler(PersonAstronautService personAstronautServic
     }
 }
 
-public class GetPersonByNameResult : BaseResponse
+public class GetPersonByNameResult
 {
-    public PersonAstronaut? Person { get; set; }
+    public PersonAstronaut? Person { get; init; }
 }

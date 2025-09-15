@@ -1,20 +1,19 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
-using StargateAPI.Controllers;
 using System.Net;
 
 namespace StargateAPI.Business.Commands;
 
 public class CreateAstronautDuty : IRequest<CreateAstronautDutyResult>
 {
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 
-    public required string Rank { get; set; }
+    public required string Rank { get; init; }
 
-    public required string DutyTitle { get; set; }
+    public required string DutyTitle { get; init; }
 
-    public DateTime DutyStartDate { get; set; }
+    public DateTime DutyStartDate { get; init; }
 }
 
 public class CreateAstronautDutyHandler(StargateContext context) 
@@ -31,7 +30,7 @@ public class CreateAstronautDutyHandler(StargateContext context)
                 predicate: p => p.Name == request.Name,
                 cancellationToken: cancellationToken)
             ?? throw new HttpRequestException(
-                message: $"No person found with name '{request.Name}'.",
+                message: $"No astronaut found with name '{request.Name}'.",
                 inner: null,
                 statusCode: HttpStatusCode.NotFound);
 
@@ -46,7 +45,7 @@ public class CreateAstronautDutyHandler(StargateContext context)
                 cancellationToken: cancellationToken))
         {
             throw new HttpRequestException(
-                message: "Duplicate astronaut duty",
+                message: "Duplicate astronaut duty.",
                 inner: null,
                 statusCode: HttpStatusCode.Conflict);
         }
@@ -56,10 +55,11 @@ public class CreateAstronautDutyHandler(StargateContext context)
                 predicate: d => d.PersonId == person.Id,
                 cancellationToken: cancellationToken);
 
+        var oneDayBeforeNewDutyStartDate = request.DutyStartDate.AddDays(-1);
         if (astronautDetail == null)
         {
             await _context.AstronautDetails.AddAsync(
-                entity: new AstronautDetail(
+                entity: AstronautDetail.ForPerson(
                     personId: person.Id,
                     currentDutyTitle: request.DutyTitle,
                     currentRank: request.Rank,
@@ -75,23 +75,23 @@ public class CreateAstronautDutyHandler(StargateContext context)
             astronautDetail.CurrentRank = request.Rank;
             if (request.DutyTitle == Constants.DutyTitles.RETIRED)
             {
-                astronautDetail.CareerEndDate = request.DutyStartDate.AddDays(-1).Date;
+                astronautDetail.CareerEndDate = oneDayBeforeNewDutyStartDate;
             }
             _context.AstronautDetails.Update(astronautDetail);
         }
 
-        var astronautDuty = await _context.AstronautDuties
+        var previousAstronautDuty = await _context.AstronautDuties
             .Where(d => d.PersonId == person.Id)
             .OrderByDescending(d => d.DutyStartDate)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
-        if (astronautDuty != null)
+        if (previousAstronautDuty != null)
         {
-            astronautDuty.DutyEndDate = request.DutyStartDate.AddDays(-1).Date;
-            _context.AstronautDuties.Update(astronautDuty);
+            previousAstronautDuty.DutyEndDate = oneDayBeforeNewDutyStartDate;
+            _context.AstronautDuties.Update(previousAstronautDuty);
         }
 
-        var newAstronautDuty = new AstronautDuty(
+        var newAstronautDuty = AstronautDuty.ForPerson(
             personId: person.Id,
             rank: request.Rank,
             dutyTitle: request.DutyTitle,
@@ -104,12 +104,14 @@ public class CreateAstronautDutyHandler(StargateContext context)
 
         await transaction.CommitAsync(cancellationToken: cancellationToken);
 
-        return new CreateAstronautDutyResult(
-            id: newAstronautDuty.Id);
+        return new CreateAstronautDutyResult
+        {
+            Id = newAstronautDuty.Id
+        };
     }
 }
 
-public class CreateAstronautDutyResult(int? id) : BaseResponse
+public class CreateAstronautDutyResult
 {
-    public readonly int? Id = id;
+    public int? Id { get; init; }
 }

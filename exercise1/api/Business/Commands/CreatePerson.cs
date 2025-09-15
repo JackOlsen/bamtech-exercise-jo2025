@@ -1,20 +1,19 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
-using StargateAPI.Controllers;
 using System.Net;
 
 namespace StargateAPI.Business.Commands;
 
 public class CreatePerson : IRequest<CreatePersonResult>
 {
-    public string Name { get; set; } = null!;
+    public string Name { get; init; } = null!;
 }
 
 public class UpdatePerson : IRequest<UpdatePersonResult>
 {
-    public string CurrentName { get; set; } = null!;
-    public string NewName { get; set; } = null!;
+    public string CurrentName { get; init; } = null!;
+    public string NewName { get; init; } = null!;
 }
 
 public class WritePersonHandler(StargateContext context) 
@@ -86,19 +85,19 @@ public class WritePersonHandler(StargateContext context)
                 cancellationToken: cancellationToken))
         {
             throw new HttpRequestException(
-                message: $"Duplicate astronaut name '{name}'",
+                message: $"Duplicate astronaut name '{name}'.",
                 inner: null,
                 statusCode: HttpStatusCode.Conflict);
         }
     }
 }
 
-public class CreatePersonResult : BaseResponse
+public class CreatePersonResult
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
 }
 
-public class UpdatePersonResult : BaseResponse
+public class UpdatePersonResult
 {
-    public int Id { get; set; }
+    public int Id { get; init; }
 }

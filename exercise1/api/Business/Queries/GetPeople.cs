@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Business.Services;
-using StargateAPI.Controllers;
 
 namespace StargateAPI.Business.Queries;
 
@@ -20,7 +19,7 @@ public class GetPeopleHandler(PersonAstronautService personAstronautService)
         };
 }
 
-public class GetPeopleResult : BaseResponse
+public class GetPeopleResult
 {
-    public List<PersonAstronaut> People { get; set; } = null!;
+    public List<PersonAstronaut> People { get; init; } = null!;
 }
