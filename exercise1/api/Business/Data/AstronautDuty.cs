@@ -25,21 +25,35 @@ public class AstronautDuty
     protected AstronautDuty() { }
 
     public AstronautDuty(
-        int personId,
         string rank,
         string dutyTitle,
         DateTime dutyStartDate,
         DateTime? dutyEndDate)
+        : this(
+              id: default,
+              personId: default,
+              rank: rank,
+              dutyTitle: dutyTitle,
+              dutyStartDate: dutyStartDate,
+              dutyEndDate: dutyEndDate)
     {
-        PersonId = personId;
-        Rank = rank;
-        DutyTitle = dutyTitle;
-        DutyStartDate = dutyStartDate;
-        DutyEndDate = dutyEndDate;
     }
 
-    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
-    public AstronautDuty(
+    public static AstronautDuty ForPerson(
+        int personId,
+        string rank,
+        string dutyTitle,
+        DateTime dutyStartDate,
+        DateTime? dutyEndDate) =>
+        new(
+              id: default,
+              personId: personId,
+              rank: rank,
+              dutyTitle: dutyTitle,
+              dutyStartDate: dutyStartDate,
+              dutyEndDate: dutyEndDate);
+
+    private AstronautDuty(
         int id,
         int personId,
         string rank,
@@ -54,6 +68,22 @@ public class AstronautDuty
         DutyStartDate = dutyStartDate;
         DutyEndDate = dutyEndDate;
     }
+
+    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
+    public static AstronautDuty Seed(
+        int id,
+        int personId,
+        string rank,
+        string dutyTitle,
+        DateTime dutyStartDate,
+        DateTime? dutyEndDate) =>
+        new (
+            id: id,
+            personId: personId,
+            rank: rank,
+            dutyTitle: dutyTitle,
+            dutyStartDate: dutyStartDate,
+            dutyEndDate: dutyEndDate);
 }
 
 public class AstronautDutyConfiguration : IEntityTypeConfiguration<AstronautDuty>

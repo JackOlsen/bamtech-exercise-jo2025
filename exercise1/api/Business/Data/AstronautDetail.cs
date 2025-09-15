@@ -25,21 +25,35 @@ public class AstronautDetail
     protected AstronautDetail() { }
 
     public AstronautDetail(
-        int personId,
         string currentRank,
         string currentDutyTitle,
         DateTime careerStartDate,
         DateTime? careerEndDate)
+        : this(
+              id: default,
+              personId: default,
+              currentRank: currentRank,
+              currentDutyTitle: currentDutyTitle,
+              careerStartDate: careerStartDate,
+              careerEndDate: careerEndDate)
     {
-        PersonId = personId;
-        CurrentRank = currentRank;
-        CurrentDutyTitle = currentDutyTitle;
-        CareerStartDate = careerStartDate;
-        CareerEndDate = careerEndDate;
     }
 
-    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
-    public AstronautDetail(
+    public static AstronautDetail ForPerson(
+        int personId,
+        string currentRank,
+        string currentDutyTitle,
+        DateTime careerStartDate,
+        DateTime? careerEndDate) =>
+        new (
+            id: default,
+            personId: personId,
+            currentRank: currentRank,
+            currentDutyTitle: currentDutyTitle,
+            careerStartDate: careerStartDate,
+            careerEndDate: careerEndDate);
+
+    private AstronautDetail(
         int id,
         int personId,
         string currentRank,
@@ -54,6 +68,22 @@ public class AstronautDetail
         CareerStartDate = careerStartDate;
         CareerEndDate = careerEndDate;
     }
+
+    [Obsolete("Provided exclusively for seeding development environment data.", error: false)]
+    public static AstronautDetail Seed(
+        int id,
+        int personId,
+        string currentRank,
+        string currentDutyTitle,
+        DateTime careerStartDate,
+        DateTime? careerEndDate) =>
+        new (
+            id: id,
+            personId: personId,
+            currentRank: currentRank,
+            currentDutyTitle: currentDutyTitle,
+            careerStartDate: careerStartDate,
+            careerEndDate: careerEndDate);
 }
 
 public class AstronautDetailConfiguration : IEntityTypeConfiguration<AstronautDetail>
