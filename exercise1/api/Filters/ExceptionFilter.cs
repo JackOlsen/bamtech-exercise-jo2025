@@ -15,27 +15,39 @@ public class ExceptionFilter(
 
     public void OnException(ExceptionContext context)
     {
-        var (httpStatusCode, title) = context.Exception switch
+        var httpStatusCode = context.Exception switch
         {
-            BadHttpRequestException badHttpEx => (StatusCodes.Status400BadRequest, badHttpEx.Message),
-            HttpRequestException httpEx => ((int?)httpEx.StatusCode, httpEx.Message),
-            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred"),
+            BadHttpRequestException => HttpStatusCode.BadRequest,
+            HttpRequestException httpEx => (HttpStatusCode)httpEx.StatusCode!,
+            _ => HttpStatusCode.InternalServerError,
         };
 
-        if (httpStatusCode == StatusCodes.Status500InternalServerError)
+        if (httpStatusCode == HttpStatusCode.InternalServerError)
         {
             _logger.LogError(context.Exception, "An unhandled exception occurred.");
         }
 
         context.Result = new ObjectResult(
             value: _problemDetailsFactory.CreateProblemDetails(
-                context.HttpContext,
-                statusCode: httpStatusCode,
-                title: title,
+                httpContext: context.HttpContext,
+                statusCode: (int)httpStatusCode,
+                title: STATUS_CODE_TITLES[httpStatusCode!],
                 detail: context.Exception.Message)) 
         { 
-            StatusCode = httpStatusCode
+            StatusCode = (int?)httpStatusCode
         };
         context.ExceptionHandled = true; 
     }
+
+    /// <summary>
+    /// Human-readable titles for HTTP status codes, i.e.: "Not Found" instead of "NotFound".
+    /// </summary>
+    private static readonly Dictionary<HttpStatusCode, string> STATUS_CODE_TITLES = 
+        Enum.GetValues<HttpStatusCode>()
+            .Distinct()
+            .ToDictionary(
+                keySelector: s => s,    
+                elementSelector: s => string.Concat(s.ToString()!
+                    .Select(x => char.IsUpper(x) ? " " + x : x.ToString()))
+                    .TrimStart(' '));
 }
