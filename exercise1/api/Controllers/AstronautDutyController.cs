@@ -13,11 +13,14 @@ public class AstronautDutyController(IMediator mediator) : ControllerBase
 
     [HttpGet("{name}")]
     public async Task<IActionResult> GetAstronautDutiesByName(string name) =>
-        this.GetResponse(
-            response: await _mediator.Send(new GetPersonByName(name: name)));
+        Ok(await _mediator.Send(new GetAstronautDutiesByName(name: name)));
 
     [HttpPost]
-    public async Task<IActionResult> CreateAstronautDuty([FromBody] CreateAstronautDuty request) =>
-        this.GetResponse(
-            response: await _mediator.Send(request));
+    public async Task<IActionResult> CreateAstronautDuty([FromBody] CreateAstronautDuty request) 
+    {
+        var createAstronautDutyResult = await _mediator.Send(request);
+        return Created(
+            uri: $"/astronautduty/{request.Name}",
+            value: createAstronautDutyResult);
+    }
 }

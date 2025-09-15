@@ -11,10 +11,6 @@ builder.Services
     .AddControllers(options =>
     {
         options.Filters.Add<ExceptionFilter>();
-    })
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.IncludeFields = true;
     });
 
 builder.Services.AddEndpointsApiExplorer();
