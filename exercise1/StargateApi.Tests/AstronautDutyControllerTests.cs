@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using StargateApi.Tests.TestUtilities;
 using StargateAPI.Business.Commands;
 using StargateAPI.Business.Data;

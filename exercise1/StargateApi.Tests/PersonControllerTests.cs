@@ -134,7 +134,7 @@ public sealed class PersonControllerTests
         var personName = "TestPerson";
 
         // Act
-        var createResponse = await _client.PostAsJsonAsync(
+        var response = await _client.PostAsJsonAsync(
             requestUri: "person",
             content: new CreatePerson
             {
@@ -142,8 +142,10 @@ public sealed class PersonControllerTests
             });
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, createResponse.StatusCode);
-        var createPersonResult = await createResponse.DeserializeResponseContentAsync<CreatePersonResult>();
+        Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+        Assert.IsNotNull(response.Headers.Location);
+        Assert.AreEqual($"/person/{personName}", response.Headers.Location.ToString());
+        var createPersonResult = await response.DeserializeResponseContentAsync<CreatePersonResult>();
         Assert.AreEqual(1, createPersonResult.Id);
     }
 
