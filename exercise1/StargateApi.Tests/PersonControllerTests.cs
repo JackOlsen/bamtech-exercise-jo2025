@@ -2,7 +2,6 @@
 using StargateApi.Tests.TestUtilities;
 using StargateAPI.Business.Commands;
 using StargateAPI.Business.Data;
-using StargateAPI.Business.Dtos;
 using StargateAPI.Business.Queries;
 using System.Net;
 
@@ -15,17 +14,18 @@ public sealed class PersonControllerTests
     private HttpClient _client = null!;
 
     [TestInitialize]
-    public void Initialize()
-    {
+    public void Initialize() => 
         (_context, _client) = StargateApiWebApplicationFactory.GetStargateContextAndApiClient();
-    }
 
     // TODO: Basic input validation tests, i.e.: create person with empty name, etc.
 
     [TestMethod]
     public async Task GetPeople_NoPeople()
     {
+        // Act
         var response = await _client.GetAsync("person");
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var getPeopleResult = await response.DeserializeResponseContentAsync<GetPeopleResult>();
         Assert.AreEqual(0, getPeopleResult.People.Count);
@@ -34,16 +34,19 @@ public sealed class PersonControllerTests
     [TestMethod]
     public async Task GetPeople_Single()
     {
+        // Arrange
         var personName = "TestPerson";
         _context.People.Add(new Person(personName));
         await _context.SaveChangesAsync();
 
+        // Act
         var response = await _client.GetAsync("person");
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var getPeopleResult = await response.DeserializeResponseContentAsync<GetPeopleResult>();
         Assert.AreEqual(1, getPeopleResult.People.Count);
-        AssertPersonAstronaut(
-            actual: getPeopleResult.People.Single(),
+        getPeopleResult.People.Single().AssertIsExpectedPersonAstronaut(
             expectedCareerEndDate: null,
             expectedCareerStartDate: null,
             expectedCurrentDutyTitle: string.Empty,
@@ -55,26 +58,28 @@ public sealed class PersonControllerTests
     [TestMethod]
     public async Task GetPeople_Multiple()
     {
+        // Arrange
         var person1Name = "TestPerson1";
         _context.People.Add(new Person(person1Name));
         var person2Name = "TestPerson2";
         _context.People.Add(new Person(person2Name));
         await _context.SaveChangesAsync();
 
+        // Act
         var response = await _client.GetAsync("person");
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var getPeopleResult = await response.DeserializeResponseContentAsync<GetPeopleResult>();
         Assert.AreEqual(2, getPeopleResult.People.Count);
-        AssertPersonAstronaut(
-            actual: getPeopleResult.People[0],
+        getPeopleResult.People[0].AssertIsExpectedPersonAstronaut(
             expectedCareerEndDate: null,
             expectedCareerStartDate: null,
             expectedCurrentDutyTitle: string.Empty,
             expectedCurrentRank: string.Empty,
             expectedName: person1Name,
             expectedPersonId: 1);
-        AssertPersonAstronaut(
-            actual: getPeopleResult.People[1],
+        getPeopleResult.People[1].AssertIsExpectedPersonAstronaut(
             expectedCareerEndDate: null,
             expectedCareerStartDate: null,
             expectedCurrentDutyTitle: string.Empty,
@@ -84,23 +89,36 @@ public sealed class PersonControllerTests
     }
 
     [TestMethod]
+    public async Task GetPersonByName_Unknown()
+    {
+        // Act
+        var unknownPersonResponse = await _client.GetAsync("person/UnknownName");
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, unknownPersonResponse.StatusCode);
+        var problemDetails = await unknownPersonResponse.DeserializeResponseContentAsync<ProblemDetails>();
+        Assert.IsNotNull(problemDetails);
+        Assert.AreEqual("Not Found", problemDetails.Title);
+        Assert.AreEqual("No person found with name 'UnknownName'.", problemDetails.Detail);
+        Assert.AreEqual((int)HttpStatusCode.NotFound, problemDetails.Status);
+    }
+
+    [TestMethod]
     public async Task GetPersonByName()
     {
+        // Arrange
         var personName = "TestPerson";
         _context.People.Add(new Person(personName));
         await _context.SaveChangesAsync();
 
-        var unknownPersonResponse = await _client.GetAsync("person/UnknownName");
-        Assert.AreEqual(HttpStatusCode.OK, unknownPersonResponse.StatusCode);
-        var getPersonByNameResultUnknown = await unknownPersonResponse.DeserializeResponseContentAsync<GetPersonByNameResult>();
-        Assert.IsNull(getPersonByNameResultUnknown.Person);
-
+        // Act
         var knownPersonResponse = await _client.GetAsync($"person/{personName}");
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.OK, knownPersonResponse.StatusCode);
         var getPersonByNameResultKnown = await knownPersonResponse.DeserializeResponseContentAsync<GetPersonByNameResult>();
         Assert.IsNotNull(getPersonByNameResultKnown.Person);
-        AssertPersonAstronaut(
-            actual: getPersonByNameResultKnown.Person,
+        getPersonByNameResultKnown.Person.AssertIsExpectedPersonAstronaut(
             expectedCareerEndDate: null,
             expectedCareerStartDate: null,
             expectedCurrentDutyTitle: string.Empty,
@@ -112,49 +130,67 @@ public sealed class PersonControllerTests
     [TestMethod]
     public async Task CreatePerson()
     {
+        // Arrange
         var personName = "TestPerson";
+
+        // Act
         var createResponse = await _client.PostAsJsonAsync(
             requestUri: "person",
             content: new CreatePerson
             {
                 Name = personName
             });
+
+        // Assert
         Assert.AreEqual(HttpStatusCode.OK, createResponse.StatusCode);
         var createPersonResult = await createResponse.DeserializeResponseContentAsync<CreatePersonResult>();
         Assert.AreEqual(1, createPersonResult.Id);
+    }
 
-        var createDuplicateResponse = await _client.PostAsJsonAsync(
+    [TestMethod]
+    public async Task CreatePerson_Duplicate()
+    {
+        // Arrange
+        var personName = "TestPerson";
+        _context.People.Add(new Person(personName));
+        await _context.SaveChangesAsync();
+
+        // Act
+        var createResponse = await _client.PostAsJsonAsync(
             requestUri: "person",
             content: new CreatePerson
             {
                 Name = personName
             });
-        Assert.AreEqual(HttpStatusCode.Conflict, createDuplicateResponse.StatusCode);
-        var duplicateProblemDetails = await createDuplicateResponse.DeserializeResponseContentAsync<ProblemDetails>();
-        Assert.AreEqual("Duplicate astronaut name 'TestPerson'", duplicateProblemDetails.Detail);
-        Assert.AreEqual((int)HttpStatusCode.Conflict, duplicateProblemDetails.Status);
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.Conflict, createResponse.StatusCode);
+        var problemDetails = await createResponse.DeserializeResponseContentAsync<ProblemDetails>();
+        Assert.IsNotNull(problemDetails);
+        Assert.AreEqual("Conflict", problemDetails.Title);
+        Assert.AreEqual("Duplicate astronaut name 'TestPerson'.", problemDetails.Detail);
+        Assert.AreEqual((int)HttpStatusCode.Conflict, problemDetails.Status);
     }
 
     [TestMethod]
     public async Task UpdatePerson()
     {
+        // Arrange
         var person1Name = "TestPerson1";
         _context.People.Add(new Person(person1Name));
         var person2Name = "TestPerson2";
         _context.People.Add(new Person(person2Name));
         await _context.SaveChangesAsync();
+        var newName = "NewName";
 
-        var unknownUpdatePersonResponse = await _client.PutAsJsonAsync(
+        // Act
+        var updatePersonUnknownResponse = await _client.PutAsJsonAsync(
             requestUri: "person",
             content: new UpdatePerson
             {
                 CurrentName = "UnknownName",
                 NewName = "NewName"
             });
-        Assert.AreEqual(HttpStatusCode.NotFound, unknownUpdatePersonResponse.StatusCode);
-        var unknownPersonProblemDetails = await unknownUpdatePersonResponse.DeserializeResponseContentAsync<ProblemDetails>();
-        Assert.AreEqual("No person found with name 'UnknownName'.", unknownPersonProblemDetails.Detail);
-        Assert.AreEqual((int)HttpStatusCode.NotFound, unknownPersonProblemDetails.Status);
 
         var updatePersonDuplicateResponse = await _client.PutAsJsonAsync(
             requestUri: "person",
@@ -163,12 +199,7 @@ public sealed class PersonControllerTests
                 CurrentName = person1Name,
                 NewName = person2Name
             });
-        Assert.AreEqual(HttpStatusCode.Conflict, updatePersonDuplicateResponse.StatusCode);
-        var duplicateProblemDetails = await updatePersonDuplicateResponse.DeserializeResponseContentAsync<ProblemDetails>();
-        Assert.AreEqual("Duplicate astronaut name 'TestPerson2'", duplicateProblemDetails.Detail);
-        Assert.AreEqual((int)HttpStatusCode.Conflict, duplicateProblemDetails.Status);
 
-        var newName = "NewName";
         var updatePersonResponse = await _client.PutAsJsonAsync(
             requestUri: "person",
             content: new UpdatePerson
@@ -176,6 +207,18 @@ public sealed class PersonControllerTests
                 CurrentName = person1Name,
                 NewName = newName
             });
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.NotFound, updatePersonUnknownResponse.StatusCode);
+        var unknownPersonProblemDetails = await updatePersonUnknownResponse.DeserializeResponseContentAsync<ProblemDetails>();
+        Assert.AreEqual((int)HttpStatusCode.NotFound, unknownPersonProblemDetails.Status);
+        Assert.AreEqual("No person found with name 'UnknownName'.", unknownPersonProblemDetails.Detail);
+
+        Assert.AreEqual(HttpStatusCode.Conflict, updatePersonDuplicateResponse.StatusCode);
+        var duplicateProblemDetails = await updatePersonDuplicateResponse.DeserializeResponseContentAsync<ProblemDetails>();
+        Assert.AreEqual((int)HttpStatusCode.Conflict, duplicateProblemDetails.Status);
+        Assert.AreEqual("Duplicate astronaut name 'TestPerson2'.", duplicateProblemDetails.Detail);
+
         Assert.AreEqual(HttpStatusCode.OK, updatePersonResponse.StatusCode);
         var updatePersonResult = await updatePersonResponse.DeserializeResponseContentAsync<UpdatePersonResult>();
         Assert.AreEqual(1, updatePersonResult.Id);
@@ -184,22 +227,5 @@ public sealed class PersonControllerTests
         var updatedPerson = await _context.People.FindAsync(1);
         Assert.IsNotNull(updatedPerson);
         Assert.AreEqual(newName, updatedPerson.Name);
-    }
-
-    private static void AssertPersonAstronaut(
-        PersonAstronaut actual,
-        DateTime? expectedCareerEndDate,
-        DateTime? expectedCareerStartDate,
-        string expectedCurrentDutyTitle,
-        string expectedCurrentRank,
-        string expectedName,
-        int expectedPersonId)
-    {
-        Assert.AreEqual(expectedCareerEndDate, actual.CareerEndDate);
-        Assert.AreEqual(expectedCareerStartDate, actual.CareerStartDate);
-        Assert.AreEqual(expectedCurrentDutyTitle, actual.CurrentDutyTitle);
-        Assert.AreEqual(expectedCurrentRank, actual.CurrentRank);
-        Assert.AreEqual(expectedName, actual.Name);
-        Assert.AreEqual(expectedPersonId, actual.PersonId);
-    }
+    }    
 }

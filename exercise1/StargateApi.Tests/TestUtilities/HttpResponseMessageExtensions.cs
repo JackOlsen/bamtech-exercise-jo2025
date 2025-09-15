@@ -4,7 +4,8 @@ namespace StargateApi.Tests.TestUtilities;
 
 public static class HttpResponseMessageExtensions
 {
-    private static JsonSerializerOptions WEB_SERIALIZER_OPTIONS = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions WEB_SERIALIZER_OPTIONS = new(
+        defaults: JsonSerializerDefaults.Web);
 
     public static async Task<TContent> DeserializeResponseContentAsync<TContent>(
         this HttpResponseMessage response)
