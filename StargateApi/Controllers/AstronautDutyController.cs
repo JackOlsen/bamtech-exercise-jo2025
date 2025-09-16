@@ -20,6 +20,7 @@ public class AstronautDutyController(IMediator mediator) : ControllerBase
 
     [HttpPost]
     [ProducesResponseType<CreateAstronautDutyResult>(statusCode: (int)HttpStatusCode.Created)]
+    [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.NotFound)]
     [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.Conflict)]
     public async Task<IActionResult> CreateAstronautDuty([FromBody] CreateAstronautDuty request) 

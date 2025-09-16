@@ -26,6 +26,7 @@ public class PersonController(IMediator mediator) : ControllerBase
 
     [HttpPost]
     [ProducesResponseType<CreatePersonResult>(statusCode: (int)HttpStatusCode.Created)]
+    [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.Conflict)]
     public async Task<CreatedResult> CreatePerson([FromBody] CreatePerson request) 
     {
@@ -37,6 +38,7 @@ public class PersonController(IMediator mediator) : ControllerBase
 
     [HttpPut("{name}")]
     [ProducesResponseType<UpdatePersonResult>(statusCode: (int)HttpStatusCode.OK)]
+    [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.NotFound)]
     [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.Conflict)]
     public Task<UpdatePersonResult> UpdatePerson(string name, [FromBody] UpdatePersonInput input) =>
