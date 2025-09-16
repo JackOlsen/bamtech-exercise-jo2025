@@ -42,14 +42,14 @@ public class StargateContext(DbContextOptions<StargateContext> options)
                 personId: 1,
                 currentRank: "1LT",
                 currentDutyTitle: "Commander",
-                careerStartDate: DateTime.Now,
+                careerStartDate: new DateTime(2010, 1, 2),
                 careerEndDate: null));
 
         modelBuilder.Entity<AstronautDuty>()
             .HasData(AstronautDuty.Seed(
                 id: 1,
                 personId: 1,
-                dutyStartDate: DateTime.Now,
+                dutyStartDate: new DateTime(2010, 2, 3),
                 dutyTitle: "Commander",
                 rank: "1LT",
                 dutyEndDate: null));
