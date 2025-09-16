@@ -25,6 +25,6 @@ TestResults/
 
 # Other
 Thumbs.db
-/exercise1/api/starbase.db
-/exercise1/api/starbase.db-shm
-/exercise1/api/starbase.db-wal
+/StargateAPI/starbase.db
+/StargateAPI/starbase.db-shm
+/StargateAPI/starbase.db-wal
