@@ -8,11 +8,8 @@ namespace StargateAPI.Business.Commands;
 public class CreateAstronautDuty : IRequest<CreateAstronautDutyResult>
 {
     public required string Name { get; init; }
-
     public required string Rank { get; init; }
-
     public required string DutyTitle { get; init; }
-
     public DateTime DutyStartDate { get; init; }
 }
 

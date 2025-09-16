@@ -8,17 +8,11 @@ namespace StargateAPI.Business.Data;
 public class AstronautDuty
 {
     public int Id { get; set; }
-
     public int PersonId { get; set; }
-
     public string Rank { get; set; } = string.Empty;
-
     public string DutyTitle { get; set; } = string.Empty;
-
     public DateTime DutyStartDate { get; set; }
-
     public DateTime? DutyEndDate { get; set; }
-
     public virtual Person Person { get; set; } = null!;
 
     [Obsolete("For EF use only", error: true)]
