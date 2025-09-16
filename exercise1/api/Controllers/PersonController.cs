@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using StargateAPI.Business.Commands;
+using StargateAPI.Business.Dtos;
 using StargateAPI.Business.Queries;
 using System.Net;
 
@@ -34,10 +35,14 @@ public class PersonController(IMediator mediator) : ControllerBase
             value: createPersonResult);
     }
 
-    [HttpPut]
+    [HttpPut("{name}")]
     [ProducesResponseType<UpdatePersonResult>(statusCode: (int)HttpStatusCode.OK)]
     [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.NotFound)]
     [ProducesResponseType<ProblemDetails>(statusCode: (int)HttpStatusCode.Conflict)]
-    public Task<UpdatePersonResult> UpdatePerson([FromBody] UpdatePerson request) =>
-        _mediator.Send(request);
+    public Task<UpdatePersonResult> UpdatePerson(string name, [FromBody] UpdatePersonInput input) =>
+        _mediator.Send(new UpdatePerson
+        {
+            CurrentName = name,
+            NewName = input.NewName
+        });
 }

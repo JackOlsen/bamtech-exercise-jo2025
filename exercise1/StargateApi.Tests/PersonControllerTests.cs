@@ -2,6 +2,7 @@
 using StargateApi.Tests.TestUtilities;
 using StargateAPI.Business.Commands;
 using StargateAPI.Business.Data;
+using StargateAPI.Business.Dtos;
 using StargateAPI.Business.Queries;
 using System.Net;
 
@@ -187,26 +188,23 @@ public sealed class PersonControllerTests
 
         // Act
         var updatePersonUnknownResponse = await _client.PutAsJsonAsync(
-            requestUri: "person",
-            content: new UpdatePerson
+            requestUri: "person/UnknownName",
+            content: new UpdatePersonInput
             {
-                CurrentName = "UnknownName",
                 NewName = "NewName"
             });
 
         var updatePersonDuplicateResponse = await _client.PutAsJsonAsync(
-            requestUri: "person",
-            content: new UpdatePerson
+            requestUri: $"person/{person1Name}",
+            content: new UpdatePersonInput
             {
-                CurrentName = person1Name,
                 NewName = person2Name
             });
 
         var updatePersonResponse = await _client.PutAsJsonAsync(
-            requestUri: "person",
-            content: new UpdatePerson
+            requestUri: $"person/{person1Name}",
+            content: new UpdatePersonInput
             {
-                CurrentName = person1Name,
                 NewName = newName
             });
 
