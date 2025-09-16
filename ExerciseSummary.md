@@ -37,6 +37,7 @@ Along the way I resolved numerous static analysis warnings and messages such as 
 - Introduced `AsNoTracking` in a few additional readonly operations to improve performance.
 - Added basic logging of unhandled exceptions.
 - Created a home for shared constant values (but only ended up finding one: `"RETIRED"`).
+- Introduced `ProducesResponseType` attributes for all actions, resulting in a more detailed Open API specification, which allows client-generation tools to produce a more useful client.
 
 ### Generate the database ✅
 
