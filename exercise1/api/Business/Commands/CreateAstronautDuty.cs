@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
+using StargateAPI.Business.Logging;
 using System.Net;
 
 namespace StargateAPI.Business.Commands;
@@ -13,15 +14,27 @@ public class CreateAstronautDuty : IRequest<CreateAstronautDutyResult>
     public DateTime DutyStartDate { get; init; }
 }
 
-public class CreateAstronautDutyHandler(StargateContext context) 
+public class CreateAstronautDutyHandler(
+    StargateContext context,
+    ProcessLoggingService processLoggingService) 
     : IRequestHandler<CreateAstronautDuty, CreateAstronautDutyResult>
 {
     private readonly StargateContext _context = context;
+    private readonly ProcessLoggingService _processLoggingService = processLoggingService;
 
     public async Task<CreateAstronautDutyResult> Handle(
         CreateAstronautDuty request,
         CancellationToken cancellationToken)
     {
+        _processLoggingService.InitiateLogEntry(
+            description: "Create Astronaut Duty",
+            details:
+            [
+                ("Name", request.Name),
+                ("Rank", request.Rank),
+                ("DutyTitle", request.DutyTitle),
+                ("DutyStartDate", request.DutyStartDate.ToString("yyyy-MM-dd"))
+            ]);
         var person = await _context.People
             .FirstOrDefaultAsync(
                 predicate: p => p.Name == request.Name,
