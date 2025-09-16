@@ -12,7 +12,7 @@ public class ProcessLoggingMiddleware(RequestDelegate next)
         ProcessLoggingService processLoggingService,
         StargateContext dbContext)
     {
-        var timestamp = Stopwatch.GetTimestamp();
+        var timestamp = DateTimeOffset.UtcNow;
         var stopwatch = Stopwatch.StartNew();
 
         await _next(httpContext);
@@ -25,7 +25,7 @@ public class ProcessLoggingMiddleware(RequestDelegate next)
         }
 
         dbContext.LogEntries.Add(new LogEntry(
-            timestamp: new DateTimeOffset(timestamp, TimeSpan.Zero),
+            timestamp: timestamp,
             description: logInfo.Description!,
             detail: string.Join(", ", (logInfo.Details ?? []).Select(e => $"{e.Key}: '{e.Value}'")),
             success: logInfo.Success,
