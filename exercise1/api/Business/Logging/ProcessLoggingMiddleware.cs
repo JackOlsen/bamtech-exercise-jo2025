@@ -27,7 +27,7 @@ public class ProcessLoggingMiddleware(RequestDelegate next)
         dbContext.LogEntries.Add(new LogEntry(
             timestamp: new DateTimeOffset(timestamp, TimeSpan.Zero),
             description: logInfo.Description!,
-            detail: string.Concat((logInfo.Details ?? []).Select(e => $"{e.Key}: '{e.Value} '")),
+            detail: string.Join(", ", (logInfo.Details ?? []).Select(e => $"{e.Key}: '{e.Value}'")),
             success: logInfo.Success,
             error: logInfo.Error,
             elapsed: stopwatch.ElapsedMilliseconds));
