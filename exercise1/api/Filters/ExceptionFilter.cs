@@ -1,17 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using StargateAPI.Business.Logging;
 using System.Net;
 
 namespace StargateAPI.Filters;
 
 public class ExceptionFilter(
     ProblemDetailsFactory problemDetailsFactory,
-    ILogger<ExceptionFilter> logger) 
+    ILogger<ExceptionFilter> logger,
+    ProcessLoggingService processLoggingService) 
     : IExceptionFilter
 {
     private readonly ProblemDetailsFactory _problemDetailsFactory = problemDetailsFactory;
     private readonly ILogger<ExceptionFilter> _logger = logger;
+    private readonly ProcessLoggingService _processLoggingService = processLoggingService;
 
     public void OnException(ExceptionContext context)
     {
@@ -32,10 +35,11 @@ public class ExceptionFilter(
                 httpContext: context.HttpContext,
                 statusCode: (int)httpStatusCode,
                 title: STATUS_CODE_TITLES[httpStatusCode!],
-                detail: context.Exception.Message)) 
-        { 
+                detail: context.Exception.Message))
+        {
             StatusCode = (int?)httpStatusCode
         };
+        _processLoggingService.RecordError(error: context.Exception.Message);
         context.ExceptionHandled = true; 
     }
 

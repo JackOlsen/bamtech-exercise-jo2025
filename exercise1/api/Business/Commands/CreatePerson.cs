@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
+using StargateAPI.Business.Logging;
 using System.Net;
 
 namespace StargateAPI.Business.Commands;
@@ -16,14 +17,20 @@ public class UpdatePerson : IRequest<UpdatePersonResult>
     public string NewName { get; init; } = null!;
 }
 
-public class WritePersonHandler(StargateContext context) 
+public class WritePersonHandler(
+    StargateContext context,
+    ProcessLoggingService processLoggingService) 
     : IRequestHandler<CreatePerson, CreatePersonResult>,
     IRequestHandler<UpdatePerson, UpdatePersonResult>
 {
     private readonly StargateContext _context = context;
+    private readonly ProcessLoggingService _processLoggingService = processLoggingService;
 
     public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
+        _processLoggingService.InitiateLogEntry(
+            description: "Create Person",
+            details: ("Name", request.Name));
         var person = await _context.DoWithinTransaction(
             action: async ctx =>
             {
@@ -50,6 +57,13 @@ public class WritePersonHandler(StargateContext context)
 
     public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
     {
+        _processLoggingService.InitiateLogEntry(
+            description: "Update Person",
+            details: 
+            [
+                ("Current name", request.CurrentName),
+                ("New name", request.NewName)
+            ]);
         var person = await _context.DoWithinTransaction(
             action: async ctx =>
             {
